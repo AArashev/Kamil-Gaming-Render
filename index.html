@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KAMIL GAMING — 3D Interior</title>
-<meta name="description" content="Interactive 3D model of the KAMIL GAMING club interior: 12-seat main hall, two 5-seat VIP rooms and reception.">
+<title>Kamil Gaming — 3D Interior</title>
+<meta name="description" content="Interactive 3D model of the Kamil Gaming club interior: 12-seat main hall, two 5-seat VIP rooms and reception.">
 
 <!-- Link preview for LinkedIn and other sites.
-     After you create the repo, replace YOUR-USERNAME below (2 places) with your GitHub username. -->
+     After you create the repo, replace aarashev below (2 places) with your GitHub username. -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="KAMIL GAMING — Interactive 3D Interior">
+<meta property="og:title" content="Kamil Gaming — Interactive 3D Interior">
 <meta property="og:description" content="Rotate, zoom and look inside: 12-seat main hall, two VIP rooms and reception.">
-<meta property="og:image" content="https://YOUR-USERNAME.github.io/kamil-gaming-3d/preview.jpg">
+<meta property="og:image" content="https://aarashev.github.io/kamil-gaming-3d/preview.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
-<meta property="og:url" content="https://YOUR-USERNAME.github.io/kamil-gaming-3d/">
+<meta property="og:url" content="https://aarashev.github.io/kamil-gaming-3d/">
 <meta name="twitter:card" content="summary_large_image">
 
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
@@ -51,8 +51,24 @@
   }
   .controls button:hover, .controls a:hover { border-color: var(--accent); }
   .controls button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .title p.place { margin-top: 2px; font-size: 13px; color: var(--accent); }
+  .loc { flex-basis: 100%; order: -1; background: var(--chip); border: 1px solid var(--chip-border); border-radius: 16px;
+    padding: 14px 16px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-align: left; }
+  .loc[hidden] { display: none; }
+  .loc h2 { margin: 0 0 6px; font-size: 15px; color: var(--accent); }
+  .loc p { margin: 0 0 4px; font-size: 14px; line-height: 1.45; color: var(--text); }
+  .loc p.sub { color: var(--muted); }
+  .controls .loc a.map { display: inline-block; margin-top: 10px; background: var(--accent); color: #111; border-color: var(--accent);
+    font-weight: 600; }
   .hint { position: fixed; right: 16px; top: max(16px, env(safe-area-inset-top)); color: var(--muted);
     font-size: 12px; text-align: right; line-height: 1.5; pointer-events: none; }
+  .pc { display: flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 5px;
+    border-radius: 12px; background: rgba(255, 138, 42, 0.95); color: #111; font-weight: 700; font-size: 12px;
+    border: 2px solid var(--bg); pointer-events: none; transition: opacity .2s; }
+  .pc[data-visible] { opacity: 1; }
+  .pc:not([data-visible]) { opacity: 0.25; }
+  .numbers-off .pc { display: none; }
+  model-viewer:not(:defined) .pc { display: none; }
   @media (max-width: 600px) { .hint { display: none; } }
 </style>
 </head>
@@ -60,7 +76,7 @@
 
 <model-viewer id="viewer"
   src="kamil-gaming-3d.glb"
-  alt="3D model of the KAMIL GAMING club interior"
+  alt="3D model of the Kamil Gaming club interior"
   camera-controls
   touch-action="none"
   auto-rotate
@@ -80,14 +96,23 @@
   <div class="bar"></div>
   <h1>KAMIL <span>GAMING</span></h1>
   <p>Gaming club interior · 3D</p>
+  <p class="place">Arkach Mall · Ashgabat</p>
 </div>
 
 <div class="hint">Drag to rotate<br>Scroll / pinch to zoom<br>Right-drag / two fingers to move</div>
 
 <div class="controls">
+  <div class="loc" id="loc" hidden>
+    <h2>Location</h2>
+    <p>Arkach Mall, Magtymguly Ave, Ashgabat</p>
+    <p class="sub">Near Ertugrul Gazi Mosque, 1st microdistrict</p>
+    <a class="map" href="https://www.google.com/maps/search/?api=1&amp;query=Arkach+Shopping+Center%2C+Magtymguly+Ave%2C+Ashgabat" target="_blank" rel="noopener">Open in Google Maps</a>
+  </div>
   <button id="btn-ceiling" type="button" aria-pressed="false">Ceiling: off</button>
+  <button id="btn-numbers" type="button" aria-pressed="true">PC numbers: on</button>
   <button id="btn-top" type="button">Top view</button>
   <button id="btn-reset" type="button">Reset view</button>
+  <button id="btn-loc" type="button" aria-pressed="false">Location</button>
   <a href="kamil-gaming-3d.glb" download>Download .glb</a>
 </div>
 
@@ -125,6 +150,41 @@
 
   btnCeiling.addEventListener('click', () => {
     try { setCeiling(!ceilingOn); } catch (e) { console.warn(e); }
+  });
+
+  // ---- PC numbers -------------------------------------------------------
+  // [number, x, z] — position of each monitor in the model (height is added below).
+  // To renumber a computer, just change its number here.
+  const PCS = [
+    // Main hall (12)
+    [1, 2.434, 0.37], [2, 2.766, 0.53], [3, 2.434, 1.27], [4, 2.766, 1.43],
+    [5, 2.434, 2.17], [6, 2.766, 2.33], [7, 2.434, 3.07], [8, 2.766, 3.23],
+    [9, 2.434, 3.97], [10, 2.766, 4.13], [11, 2.434, 4.87], [12, 2.766, 5.03],
+    // VIP 1 (5)
+    [13, -2.97, 0.166], [14, -1.87, 0.166], [15, -0.77, 0.166], [16, -2.73, 3.822], [17, -1.63, 3.822],
+    // VIP 2 (5)
+    [18, -2.97, 4.253], [19, -1.87, 4.253], [20, -2.73, 7.91], [21, -1.63, 7.91], [22, -0.53, 7.91]
+  ];
+  for (const [n, x, z] of PCS) {
+    const el = document.createElement('div');
+    el.className = 'pc';
+    el.slot = 'hotspot-pc' + n;
+    el.dataset.position = `${x}m 1.5m ${z}m`;
+    el.dataset.normal = '0m 1m 0m';
+    el.textContent = n;
+    viewer.appendChild(el);
+  }
+  const btnNumbers = document.getElementById('btn-numbers');
+  btnNumbers.addEventListener('click', () => {
+    const off = document.body.classList.toggle('numbers-off');
+    btnNumbers.textContent = off ? 'PC numbers: off' : 'PC numbers: on';
+    btnNumbers.setAttribute('aria-pressed', String(!off));
+  });
+
+  const loc = document.getElementById('loc'), btnLoc = document.getElementById('btn-loc');
+  btnLoc.addEventListener('click', () => {
+    loc.hidden = !loc.hidden;
+    btnLoc.setAttribute('aria-pressed', String(!loc.hidden));
   });
 
   document.getElementById('btn-top').addEventListener('click', () => {
