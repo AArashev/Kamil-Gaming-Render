@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAMIL GAMING — 3D Interior</title>
+<meta name="description" content="Interactive 3D model of the KAMIL GAMING club interior: 12-seat main hall, two 5-seat VIP rooms and reception.">
+
+<!-- Link preview for LinkedIn and other sites.
+     After you create the repo, replace YOUR-USERNAME below (2 places) with your GitHub username. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="KAMIL GAMING — Interactive 3D Interior">
+<meta property="og:description" content="Rotate, zoom and look inside: 12-seat main hall, two VIP rooms and reception.">
+<meta property="og:image" content="https://YOUR-USERNAME.github.io/kamil-gaming-3d/preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:url" content="https://YOUR-USERNAME.github.io/kamil-gaming-3d/">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0d;
+    --text: #f2f2f4;
+    --muted: #a3a3ad;
+    --accent: #ff8a2a;
+    --chip: rgba(22, 22, 28, 0.78);
+    --chip-border: rgba(255, 255, 255, 0.12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+  model-viewer {
+    width: 100vw; height: 100vh; height: 100dvh; display: block;
+    background: radial-gradient(ellipse at 50% 40%, #1c1c24 0%, var(--bg) 70%);
+    --poster-color: transparent;
+    --progress-bar-color: var(--accent);
+  }
+  .title { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px; pointer-events: none; }
+  .title .bar { width: 36px; height: 3px; background: var(--accent); margin-bottom: 10px; }
+  .title h1 { margin: 0; font-size: clamp(22px, 4vw, 34px); letter-spacing: 0.02em; line-height: 1.05; font-weight: 800; }
+  .title h1 span { color: var(--accent); }
+  .title p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+  .controls { position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 8px; flex-wrap: wrap;
+    justify-content: center; width: calc(100% - 32px); max-width: 560px; }
+  .controls button, .controls a {
+    font: inherit; font-size: 14px; color: var(--text); background: var(--chip);
+    border: 1px solid var(--chip-border); border-radius: 999px; padding: 9px 16px; cursor: pointer;
+    text-decoration: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .controls button:hover, .controls a:hover { border-color: var(--accent); }
+  .controls button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .hint { position: fixed; right: 16px; top: max(16px, env(safe-area-inset-top)); color: var(--muted);
+    font-size: 12px; text-align: right; line-height: 1.5; pointer-events: none; }
+  @media (max-width: 600px) { .hint { display: none; } }
+</style>
+</head>
+<body>
+
+<model-viewer id="viewer"
+  src="kamil-gaming-3d.glb"
+  alt="3D model of the KAMIL GAMING club interior"
+  camera-controls
+  touch-action="none"
+  auto-rotate
+  auto-rotate-delay="2500"
+  rotation-per-second="10deg"
+  camera-orbit="-36deg 52deg auto"
+  min-camera-orbit="auto 0deg auto"
+  max-camera-orbit="auto 88deg auto"
+  field-of-view="32deg"
+  environment-image="neutral"
+  exposure="1.3"
+  shadow-intensity="0.6"
+  interaction-prompt="auto">
+</model-viewer>
+
+<div class="title">
+  <div class="bar"></div>
+  <h1>KAMIL <span>GAMING</span></h1>
+  <p>Gaming club interior · 3D</p>
+</div>
+
+<div class="hint">Drag to rotate<br>Scroll / pinch to zoom<br>Right-drag / two fingers to move</div>
+
+<div class="controls">
+  <button id="btn-ceiling" type="button" aria-pressed="false">Ceiling: off</button>
+  <button id="btn-top" type="button">Top view</button>
+  <button id="btn-reset" type="button">Reset view</button>
+  <a href="kamil-gaming-3d.glb" download>Download .glb</a>
+</div>
+
+<script>
+  const viewer = document.getElementById('viewer');
+  const btnCeiling = document.getElementById('btn-ceiling');
+  const START_ORBIT = '-36deg 52deg auto';
+  // Materials used only by the three ceiling meshes in this model.
+  const CEILING_MATERIALS = new Set(['ceiling', 'light', 'material_8']);
+  let ceilingOn = false;
+
+  function setCeiling(show) {
+    if (!viewer.model) return;
+    for (const m of viewer.model.materials) {
+      if (!CEILING_MATERIALS.has(m.name)) continue;
+      const c = m.pbrMetallicRoughness.baseColorFactor;
+      if (show) {
+        m.setAlphaMode('OPAQUE');
+        m.pbrMetallicRoughness.setBaseColorFactor([c[0], c[1], c[2], 1]);
+      } else {
+        m.setAlphaMode('MASK');
+        m.setAlphaCutoff(0.5);
+        m.pbrMetallicRoughness.setBaseColorFactor([c[0], c[1], c[2], 0]);
+      }
+    }
+    ceilingOn = show;
+    btnCeiling.textContent = show ? 'Ceiling: on' : 'Ceiling: off';
+    btnCeiling.setAttribute('aria-pressed', String(show));
+  }
+
+  // Hide the ceiling as soon as the model loads so you can see inside from above.
+  viewer.addEventListener('load', () => {
+    try { setCeiling(false); } catch (e) { console.warn('Ceiling toggle unavailable', e); btnCeiling.hidden = true; }
+  });
+
+  btnCeiling.addEventListener('click', () => {
+    try { setCeiling(!ceilingOn); } catch (e) { console.warn(e); }
+  });
+
+  document.getElementById('btn-top').addEventListener('click', () => {
+    viewer.autoRotate = false;
+    viewer.resetTurntableRotation(0);
+    viewer.cameraOrbit = '0deg 0.5deg auto';
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    viewer.resetTurntableRotation(0);
+    viewer.cameraTarget = 'auto auto auto';
+    viewer.cameraOrbit = START_ORBIT;
+    viewer.autoRotate = true;
+  });
+</script>
+</body>
+</html>
