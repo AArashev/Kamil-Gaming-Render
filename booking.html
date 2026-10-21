@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kamil Gaming — Book a PC</title>
+<meta name="description" content="Book a PC at Kamil Gaming, Arkach Mall, Ashgabat.">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0d; --card: #15151b; --line: rgba(255,255,255,.1); --text: #f2f2f4; --muted: #a3a3ad;
+    --accent: #ff8a2a; --free: #2fbf71; --pending: #f5b301; --booked: #e5484d; --walkin: #3b82f6;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 15px; }
+  [hidden] { display: none !important; }
+  button, select, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 20; background: rgba(10,10,13,.92); backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top); }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 54px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .02em; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  .brand span b { color: var(--accent); }
+  .langs { display: flex; gap: 4px; }
+  .langs button { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 5px 8px;
+    font-size: 12px; font-weight: 700; color: var(--muted); }
+  .langs button.on { background: var(--accent); border-color: var(--accent); color: #111; }
+
+  /* tabs */
+  .tabs { display: flex; gap: 8px; padding: 12px 16px 0; max-width: 720px; margin: 0 auto; }
+  .tabs button { flex: 1; padding: 10px 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
+    font-weight: 600; color: var(--muted); }
+  .tabs button.on { border-color: var(--accent); color: var(--accent); }
+
+  /* 3D stage */
+  #stage { position: relative; height: 46vh; min-height: 290px; max-height: 520px; margin-top: 12px;
+    background: radial-gradient(ellipse at 50% 40%, #1c1c24 0%, var(--bg) 72%); border-block: 1px solid var(--line); }
+  model-viewer { width: 100%; height: 100%; display: block; --poster-color: transparent; --progress-bar-color: var(--accent);
+    --min-hotspot-opacity: .4; }
+  .stage-btns { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; }
+  .stage-btns button { background: rgba(22,22,28,.8); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+  .stage-btns button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+  /* PC badges (3D hotspots + grid chips) */
+  .pc { min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; border: 2px solid var(--bg); color: #111;
+    font-weight: 800; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; }
+  model-viewer .pc { cursor: pointer; }
+  .s-free { background: var(--free); } .s-pending { background: var(--pending); }
+  .s-booked { background: var(--booked); color: #fff; } .s-walkin { background: var(--walkin); color: #fff; }
+  .pc.sel { outline: 3px solid #fff; outline-offset: 1px; transform: scale(1.25); }
+  model-viewer:not(:defined) .pc { display: none; }
+
+  /* panels */
+  main { max-width: 720px; margin: 0 auto; padding: 14px 16px 40px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 0 8px; font-weight: 700; }
+  .row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+  .chip { flex: 0 0 auto; min-width: 64px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--card); text-align: center; display: flex; flex-direction: column; gap: 2px; line-height: 1.15; }
+  .chip span { font-size: 12px; color: var(--muted); }
+  .chip.on { border-color: var(--accent); background: rgba(255,138,42,.12); }
+  .chip.on span { color: var(--accent); }
+  .chip:disabled { opacity: .3; cursor: default; }
+  .chip.night sup { color: var(--accent); font-size: 9px; margin-left: 2px; }
+  select { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; width: 100%; }
+  .summary { margin: 14px 0 4px; font-size: 17px; font-weight: 700; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin: 8px 0; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 8px; }
+  .grid .pc { height: 40px; border-radius: 10px; font-size: 14px; border: 2px solid transparent; }
+  .grid .pc.sel { transform: none; outline-offset: 2px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-top: 12px; }
+  .card h3 { margin: 0 0 4px; font-size: 18px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .btn { display: inline-block; border: 0; border-radius: 12px; padding: 12px 18px; background: var(--accent); color: #111; font-weight: 700; margin-top: 10px; text-decoration: none; }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+  .btn.red { background: var(--booked); color: #fff; } .btn.green { background: var(--free); color: #111; }
+  .btn:disabled { opacity: .4; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .timeline { display: flex; gap: 2px; height: 22px; margin-top: 12px; }
+  .timeline i { flex: 1; border-radius: 3px; background: var(--free); opacity: .85; }
+  .timeline i.s-pending { background: var(--pending); } .timeline i.s-booked { background: var(--booked); }
+  .timeline i.s-walkin { background: var(--walkin); } .timeline i.past { opacity: .2; }
+  .ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .windows { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .windows button { background: transparent; border: 1px solid var(--free); color: var(--free); border-radius: 999px; padding: 5px 11px; font-size: 13px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #333; }
+  .pill.pending { background: rgba(245,179,1,.2); color: var(--pending); } .pill.confirmed { background: rgba(47,191,113,.2); color: var(--free); }
+  .pill.walkin { background: rgba(59,130,246,.2); color: var(--walkin); }
+  .pill.rejected, .pill.cancelled, .pill.expired, .pill.done { background: rgba(255,255,255,.08); color: var(--muted); }
+  .item { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 26px; line-height: 1.5; }
+  .note a { color: var(--muted); }
+  input[type=text], input[type=tel], input[type=password] { width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 14px; margin-top: 6px; font-size: 16px; }
+  label { display: block; margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+  /* sign-in */
+  #signin { min-height: 100vh; min-height: 100dvh; padding: 24px 16px; max-width: 460px; margin: 0 auto; }
+  #signin .logo { display: block; width: 96px; height: 96px; border-radius: 22px; margin: 18px auto 14px; }
+  #signin h1 { text-align: center; margin: 0; font-size: 26px; }
+  #signin p.sub { text-align: center; color: var(--muted); margin: 6px 0 8px; }
+  #signin .langs { justify-content: center; margin-top: 8px; }
+  .err { color: var(--booked); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+  /* modal + toast */
+  #modal { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #modal .box { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; max-width: 420px; width: 100%; }
+  #modal p { margin: 0 0 6px; line-height: 1.45; }
+</style>
+</head>
+<body>
+
+<!-- Sign-in -->
+<section id="signin" hidden>
+  <img class="logo" src="logo.png" alt="">
+  <h1>Kamil Gaming</h1>
+  <p class="sub" id="si-sub"></p>
+  <div class="langs" data-langs></div>
+  <form id="si-form" autocomplete="on" novalidate>
+    <label id="l-name"></label><input id="f-name" type="text" autocomplete="given-name">
+    <label id="l-surname"></label><input id="f-surname" type="text" autocomplete="family-name">
+    <label id="l-nick"></label><input id="f-nick" type="text" autocomplete="nickname">
+    <label id="l-phone"></label><input id="f-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+993 6X XXXXXX">
+    <div class="err" id="si-err"></div>
+    <button class="btn" id="si-go" type="submit" style="width:100%"></button>
+  </form>
+  <p class="note"><span id="si-hours"></span><br><span id="si-demo"></span><br><a href="#admin" id="si-staff"></a></p>
+</section>
+
+<!-- App -->
+<div id="app" hidden>
+  <header><div class="wrap">
+    <div class="brand"><img src="logo.png" alt=""><span>Kamil <b>Gaming</b></span></div>
+    <div class="langs" data-langs></div>
+  </div></header>
+  <nav class="tabs" id="tabs"></nav>
+
+  <section id="stage">
+    <model-viewer id="viewer" src="kamil-gaming-3d.glb" alt="3D model of Kamil Gaming"
+      camera-controls touch-action="pan-y" interaction-prompt="none"
+      camera-orbit="-28deg 40deg auto" min-camera-orbit="auto 0deg auto" max-camera-orbit="auto 86deg auto"
+      field-of-view="30deg" environment-image="neutral" exposure="1.3" shadow-intensity="0.5"></model-viewer>
+    <div class="stage-btns">
+      <button id="btn-ceil" type="button" aria-pressed="false"></button>
+      <button id="btn-top" type="button"></button>
+    </div>
+  </section>
+
+  <main id="panel"></main>
+</div>
+
+<div id="modal" hidden><div class="box"><div id="modal-text"></div><button class="btn" id="modal-ok" type="button">OK</button></div></div>
+
+<script>
+(() => {
+'use strict';
+/* ====================================================================
+   CONFIG
+   ==================================================================== */
+const OPEN_H = 10, CLOSE_H = 5;             // club day: 10:00 -> 05:00 next morning
+const SLOTS = 38, STEP = 30 * 60000;        // 30-minute slots
+const PENDING_MS = 30 * 60000;              // unconfirmed request is held 30 minutes
+const MAX_DUR = 360, MAX_PENDING = 2;
+const STAFF_PIN = '1234';                   // DEMO ONLY — real version uses a proper staff login
+// [PC number, x, z] — monitor positions in the 3D model
+const PCS = [
+  [1,2.434,.37],[2,2.766,.53],[3,2.434,1.27],[4,2.766,1.43],[5,2.434,2.17],[6,2.766,2.33],
+  [7,2.434,3.07],[8,2.766,3.23],[9,2.434,3.97],[10,2.766,4.13],[11,2.434,4.87],[12,2.766,5.03],
+  [13,-2.97,.166],[14,-1.87,.166],[15,-.77,.166],[16,-2.73,3.822],[17,-1.63,3.822],
+  [18,-2.97,4.253],[19,-1.87,4.253],[20,-2.73,7.91],[21,-1.63,7.91],[22,-.53,7.91]
+];
+const PC_IDS = PCS.map(p => p[0]);
+
+/* ====================================================================
+   TEXTS (ru / en / tk / tr) — Turkmen and Turkish should be proof-read by a native speaker
+   ==================================================================== */
+const I18N = {
+ en: { signin_sub:'Create your profile to book a PC', name:'Name', surname:'Surname', nickname:'Nickname', phone:'Phone number',
+  cont:'Continue', tab_book:'Book', tab_my:'My bookings', tab_staff:'Staff', day:'Day', time:'Start time', duration:'Duration',
+  free:'Free', pending:'Pending', booked:'Booked', walkin:'Walk-in', selected:'Selected', pc:'PC',
+  free_for:'Free for {t}', busy:'Not available at this time', free_times:'Free times on this day',
+  request:'Request booking', req_sent:'Request sent. Our administrator will call {phone} to confirm. Your request is held for 30 minutes.',
+  my_empty:'No bookings yet', cancel:'Cancel', st_pending:'Waiting for confirmation', st_confirmed:'Confirmed', st_rejected:'Rejected',
+  st_cancelled:'Cancelled', st_expired:'Expired', st_walkin:'Walk-in', st_done:'Completed',
+  staff:'Staff', pin:'PIN', enter:'Enter', bad_pin:'Wrong PIN', requests:'Requests to confirm', confirm:'Confirm', reject:'Reject', call:'Call',
+  walkin_title:'Walk-in guest', start_walkin:'Start walk-in', end_session:'End session', staff_hint:'Tap a PC in the model or in the grid',
+  none:'None', logout:'Sign out', too_many:'You already have 2 requests waiting. Please wait for the administrator to confirm.',
+  hours:'Open daily 10:00–05:00', demo:'Demo version — data is stored on this device only.', ceiling_off:'Ceiling: off', ceiling_on:'Ceiling: on',
+  top:'Top view', fill_all:'Please fill in all fields', bad_phone:'Enter a valid phone number', taken:'This PC was just taken for this time',
+  until:'until {t}', today_bookings:'Upcoming bookings', reset:'Reset demo data', now_status:'Status right now', free_now:'Free now',
+  free_until:'Free until {t}', busy_soon:'Booked soon — not enough time', night:'after midnight', min:'min', h:'h', next_day:'(next day)',
+  guest:'Guest', profile:'Profile', staff_out:'Leave staff mode', for_time:'at this time', booked_by:'Booked by', pc_free_now_hint:'Free right now' },
+ ru: { signin_sub:'Создайте профиль, чтобы забронировать ПК', name:'Имя', surname:'Фамилия', nickname:'Никнейм', phone:'Номер телефона',
+  cont:'Продолжить', tab_book:'Бронь', tab_my:'Мои брони', tab_staff:'Персонал', day:'День', time:'Время начала', duration:'Длительность',
+  free:'Свободен', pending:'Ожидает', booked:'Забронирован', walkin:'Без брони', selected:'Выбран', pc:'ПК',
+  free_for:'Свободен: {t}', busy:'В это время недоступен', free_times:'Свободное время в этот день',
+  request:'Отправить заявку', req_sent:'Заявка отправлена. Администратор позвонит на {phone} для подтверждения. Заявка держится 30 минут.',
+  my_empty:'Броней пока нет', cancel:'Отменить', st_pending:'Ждёт подтверждения', st_confirmed:'Подтверждена', st_rejected:'Отклонена',
+  st_cancelled:'Отменена', st_expired:'Истекла', st_walkin:'Без брони', st_done:'Завершена',
+  staff:'Персонал', pin:'PIN-код', enter:'Войти', bad_pin:'Неверный PIN', requests:'Заявки на подтверждение', confirm:'Подтвердить', reject:'Отклонить', call:'Позвонить',
+  walkin_title:'Гость без брони', start_walkin:'Посадить гостя', end_session:'Завершить сеанс', staff_hint:'Нажмите на ПК в модели или в сетке',
+  none:'Нет', logout:'Выйти', too_many:'У вас уже 2 заявки в ожидании. Дождитесь подтверждения администратора.',
+  hours:'Работаем ежедневно 10:00–05:00', demo:'Демо-версия — данные хранятся только на этом устройстве.', ceiling_off:'Потолок: выкл', ceiling_on:'Потолок: вкл',
+  top:'Вид сверху', fill_all:'Заполните все поля', bad_phone:'Введите корректный номер телефона', taken:'Этот ПК только что заняли на это время',
+  until:'до {t}', today_bookings:'Ближайшие брони', reset:'Сбросить демо-данные', now_status:'Состояние сейчас', free_now:'Свободен сейчас',
+  free_until:'Свободен до {t}', busy_soon:'Скоро бронь — мало времени', night:'после полуночи', min:'мин', h:'ч', next_day:'(след. день)',
+  guest:'Гость', profile:'Профиль', staff_out:'Выйти из режима персонала', for_time:'на это время', booked_by:'Забронировал', pc_free_now_hint:'Свободен прямо сейчас' },
+ tk: { signin_sub:'Kompýuter bron etmek üçin profil dörediň', name:'Ady', surname:'Familiýasy', nickname:'Lakamy', phone:'Telefon belgisi',
+  cont:'Dowam et', tab_book:'Bron', tab_my:'Meniň bronlarym', tab_staff:'Işgärler', day:'Gün', time:'Başlanýan wagty', duration:'Dowamlylygy',
+  free:'Boş', pending:'Garaşylýar', booked:'Bron edilen', walkin:'Bronsyz', selected:'Saýlanan', pc:'PC',
+  free_for:'Boş: {t}', busy:'Bu wagtda elýeterli däl', free_times:'Şu günüň boş wagtlary',
+  request:'Bron haýyşyny ugrat', req_sent:'Haýyş ugradyldy. Administrator tassyklamak üçin {phone} belgisine jaň eder. Haýyş 30 minut saklanýar.',
+  my_empty:'Heniz bron ýok', cancel:'Ýatyr', st_pending:'Tassyklamagy garaşýar', st_confirmed:'Tassyklandy', st_rejected:'Ret edildi',
+  st_cancelled:'Ýatyryldy', st_expired:'Möhleti geçdi', st_walkin:'Bronsyz', st_done:'Tamamlandy',
+  staff:'Işgärler', pin:'PIN kod', enter:'Girmek', bad_pin:'PIN nädogry', requests:'Tassyklamaly haýyşlar', confirm:'Tassykla', reject:'Ret et', call:'Jaň et',
+  walkin_title:'Bronsyz myhman', start_walkin:'Myhmany oturt', end_session:'Sessiýany tamamla', staff_hint:'Modelde ýa-da tablisada PC-ni basyň',
+  none:'Ýok', logout:'Çykmak', too_many:'Siziň eýýäm 2 haýyşyňyz garaşýar. Administratoryň tassyklamagyna garaşyň.',
+  hours:'Her gün 10:00–05:00 açyk', demo:'Demo wersiýa — maglumatlar diňe şu enjamda saklanýar.', ceiling_off:'Üçek: ýok', ceiling_on:'Üçek: bar',
+  top:'Ýokardan görnüş', fill_all:'Ähli meýdanlary dolduryň', bad_phone:'Dogry telefon belgisini giriziň', taken:'Bu PC şu wagt üçin eýýäm alyndy',
+  until:'{t} çenli', today_bookings:'Ýakynlaşýan bronlar', reset:'Demo maglumatlary arassala', now_status:'Häzirki ýagdaý', free_now:'Häzir boş',
+  free_until:'{t} çenli boş', busy_soon:'Ýakynda bron bar — wagt ýeterlik däl', night:'ýarym gijeden soň', min:'min', h:'sag', next_day:'(ertesi gün)',
+  guest:'Myhman', profile:'Profil', staff_out:'Işgär režiminden çyk', for_time:'şu wagt üçin', booked_by:'Bron eden', pc_free_now_hint:'Häzir boş' },
+ tr: { signin_sub:'Bilgisayar rezervasyonu için profil oluşturun', name:'Ad', surname:'Soyad', nickname:'Takma ad', phone:'Telefon numarası',
+  cont:'Devam', tab_book:'Rezervasyon', tab_my:'Rezervasyonlarım', tab_staff:'Personel', day:'Gün', time:'Başlangıç saati', duration:'Süre',
+  free:'Boş', pending:'Beklemede', booked:'Rezerve', walkin:'Rezervasyonsuz', selected:'Seçili', pc:'PC',
+  free_for:'Boş: {t}', busy:'Bu saatte müsait değil', free_times:'Bu günün boş saatleri',
+  request:'Rezervasyon talebi gönder', req_sent:'Talep gönderildi. Yönetici onaylamak için {phone} numarasını arayacak. Talep 30 dakika tutulur.',
+  my_empty:'Henüz rezervasyon yok', cancel:'İptal', st_pending:'Onay bekliyor', st_confirmed:'Onaylandı', st_rejected:'Reddedildi',
+  st_cancelled:'İptal edildi', st_expired:'Süresi doldu', st_walkin:'Rezervasyonsuz', st_done:'Tamamlandı',
+  staff:'Personel', pin:'PIN', enter:'Giriş', bad_pin:'Yanlış PIN', requests:'Onay bekleyen talepler', confirm:'Onayla', reject:'Reddet', call:'Ara',
+  walkin_title:'Rezervasyonsuz misafir', start_walkin:'Misafiri oturt', end_session:'Oturumu bitir', staff_hint:'Modelde veya tabloda bir bilgisayara dokunun',
+  none:'Yok', logout:'Çıkış', too_many:'Zaten bekleyen 2 talebiniz var. Yöneticinin onayını bekleyin.',
+  hours:'Her gün 10:00–05:00 açık', demo:'Demo sürüm — veriler yalnızca bu cihazda saklanır.', ceiling_off:'Tavan: kapalı', ceiling_on:'Tavan: açık',
+  top:'Yukarıdan', fill_all:'Lütfen tüm alanları doldurun', bad_phone:'Geçerli bir telefon numarası girin', taken:'Bu bilgisayar az önce bu saat için alındı',
+  until:'{t} kadar', today_bookings:'Yaklaşan rezervasyonlar', reset:'Demo verilerini sıfırla', now_status:'Şu anki durum', free_now:'Şu an boş',
+  free_until:'{t} kadar boş', busy_soon:'Yakında rezerve — süre yetersiz', night:'gece yarısından sonra', min:'dk', h:'sa', next_day:'(ertesi gün)',
+  guest:'Misafir', profile:'Profil', staff_out:'Personel modundan çık', for_time:'bu saat için', booked_by:'Rezerve eden', pc_free_now_hint:'Şu an boş' }
+};
+const WD = {
+  en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], ru:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
+  tk:['Ýek','Duş','Siş','Çar','Pen','Ann','Şen'], tr:['Paz','Pzt','Sal','Çar','Per','Cum','Cmt']
+};
+
+/* ====================================================================
+   STORAGE / DATA LAYER  (demo: this device only — replace with Firebase/Supabase later)
+   ==================================================================== */
+const mem = {};
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return mem[k] ?? null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { mem[k] = v; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { delete mem[k]; } }
+};
+const DB = {
+  list() { try { return JSON.parse(store.get('kg_bookings') || '[]'); } catch (e) { return []; } },
+  save(a) { store.set('kg_bookings', JSON.stringify(a)); },
+  add(b) { const a = this.list(); a.push(b); this.save(a); },
+  update(id, patch) { const a = this.list(); const b = a.find(x => x.id === id); if (b) Object.assign(b, patch); this.save(a); }
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+/* ====================================================================
+   TIME HELPERS
+   ==================================================================== */
+const pad = n => String(n).padStart(2, '0');
+function clubDays() {
+  const n = new Date(); let d = n.getDate(); if (n.getHours() < CLOSE_H) d -= 1;   // before 05:00 we are still in yesterday's club day
+  return Array.from({ length: 7 }, (_, i) => ({
+    start: new Date(n.getFullYear(), n.getMonth(), d + i, OPEN_H, 0, 0, 0).getTime(),
+    close: new Date(n.getFullYear(), n.getMonth(), d + i + 1, CLOSE_H, 0, 0, 0).getTime()
+  }));
+}
+function fmtTime(ms) {
+  const d = new Date(ms), h = d.getHours(), m = pad(d.getMinutes());
+  if (S.lang === 'en') return `${h % 12 || 12}:${m} ${h < 12 ? 'AM' : 'PM'}`;
+  return `${pad(h)}:${m}`;
+}
+const fmtDM = ms => { const d = new Date(ms); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}`; };
+const fmtDay = ms => `${WD[S.lang][new Date(ms).getDay()]} ${fmtDM(ms)}`;
+const fmtRange = (a, b) => `${fmtTime(a)}–${fmtTime(b)}`;
+function fmtDur(min) {
+  const h = Math.floor(min / 60), m = min % 60, T = I18N[S.lang];
+  return [h ? `${h} ${T.h}` : '', m ? `${m} ${T.min}` : ''].filter(Boolean).join(' ');
+}
+const isNight = ms => new Date(ms).getHours() < CLOSE_H;
+
+/* ====================================================================
+   STATE
+   ==================================================================== */
+const S = {
+  lang: store.get('kg_lang') || ({ ru:'ru', tr:'tr', tk:'tk' }[(navigator.language || '').slice(0, 2)] || 'en'),
+  user: null, tab: 'book', day: 0, slot: 0, dur: 60, pc: null, staff: false, walkDur: 60
+};
+try { S.user = JSON.parse(store.get('kg_user') || 'null'); } catch (e) {}
+const T = k => (I18N[S.lang][k] ?? I18N.en[k] ?? k);
+const tv = (k, v) => Object.entries(v).reduce((s, [a, b]) => s.replace('{' + a + '}', b), T(k));
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const digits = p => String(p || '').replace(/[^\d]/g, '');
+
+/* ====================================================================
+   BOOKING LOGIC
+   ==================================================================== */
+function effStatus(b, now) {
+  if (b.status === 'pending' && b.createdAt + PENDING_MS <= now) return 'expired';
+  if ((b.status === 'confirmed' || b.status === 'walkin') && b.end <= now) return 'done';
+  return b.status;
+}
+// status of one PC for the time window [a, b): free | pending | booked | walkin
+function stateOf(pc, a, b, now = Date.now()) {
+  let res = { s: 'free' };
+  for (const bk of DB.list()) {
+    if (bk.pc !== pc) continue;
+    const st = effStatus(bk, now);
+    if (!(st === 'confirmed' || st === 'walkin' || st === 'pending')) continue;
+    if (!(bk.start < b && a < bk.end)) continue;
+    if (st === 'pending') { if (res.s === 'free') res = { s: 'pending', bk }; }
+    else return { s: st === 'walkin' ? 'walkin' : 'booked', bk };
+  }
+  return res;
+}
+// moment from which the PC is free until the next booking (or club close)
+function freeUntil(pc, from, close) {
+  let t = close; const now = Date.now();
+  for (const bk of DB.list()) {
+    if (bk.pc !== pc) continue;
+    const st = effStatus(bk, now);
+    if (!(st === 'confirmed' || st === 'walkin' || st === 'pending')) continue;
+    if (bk.start >= from && bk.start < t) t = bk.start;
+  }
+  return t;
+}
+function firstSlot(di, days) {
+  const now = Date.now();
+  for (let s = 0; s < SLOTS; s++) if (days[di].start + s * STEP >= now) return s;
+  return -1;
+}
+function maxDurFor(di, slot, days) {
+  return Math.min(MAX_DUR, Math.floor((days[di].close - (days[di].start + slot * STEP)) / 60000));
+}
+function interval(days) {
+  if (S.tab === 'staff') { const n = Date.now(); return [n, n + STEP]; }
+  const a = days[S.day].start + S.slot * STEP; return [a, a + S.dur * 60000];
+}
+function seedDemo() {
+  const days = clubDays(), d0 = days[0].start, d1 = days[1].start, now = Date.now();
+  const at = (base, h, m) => base + ((h < CLOSE_H ? h + 24 : h) - OPEN_H) * 3600000 + m * 60000;
+  const mk = (pc, s, e, status, extra = {}) => ({ id: uid(), pc, start: s, end: e, status, createdAt: now, user: { name:'Demo', surname:'Guest', nick:'demo', phone:'+99361000000' }, ...extra });
+  DB.save([
+    mk(3, at(d0,14,0), at(d0,16,0), 'confirmed'), mk(5, at(d0,18,0), at(d0,20,30), 'confirmed'),
+    mk(14, at(d0,20,0), at(d0,23,0), 'confirmed'), mk(9, at(d0,22,0), at(d0,2,0), 'confirmed'),
+    mk(6, at(d0,15,0), at(d0,16,30), 'pending'), mk(8, at(d1,15,30), at(d1,17,30), 'confirmed'),
+    mk(20, at(d1,19,0), at(d1,23,0), 'confirmed'),
+    mk(1, now - 20 * 60000, now + 70 * 60000, 'walkin', { user: null })
+  ]);
+  store.set('kg_seeded', '1');
+}
+
+/* ====================================================================
+   3D VIEWER + BADGES
+   ==================================================================== */
+const viewer = $('#viewer'); const hs = {};
+for (const [n, x, z] of PCS) {
+  const el = document.createElement('button');
+  el.type = 'button'; el.slot = 'hotspot-pc' + n; el.dataset.position = `${x}m 1.5m ${z}m`; el.dataset.normal = '0m 1m 0m';
+  el.className = 'pc s-free'; el.textContent = n; el.addEventListener('click', () => selectPC(n));
+  viewer.appendChild(el); hs[n] = el;
+}
+const CEIL = new Set(['ceiling', 'light', 'material_8']); let ceilOn = false;
+function setCeiling(show) {
+  if (!viewer.model) return;
+  for (const m of viewer.model.materials) {
+    if (!CEIL.has(m.name)) continue;
+    const c = m.pbrMetallicRoughness.baseColorFactor;
+    if (show) { m.setAlphaMode('OPAQUE'); m.pbrMetallicRoughness.setBaseColorFactor([c[0], c[1], c[2], 1]); }
+    else { m.setAlphaMode('MASK'); m.setAlphaCutoff(0.5); m.pbrMetallicRoughness.setBaseColorFactor([c[0], c[1], c[2], 0]); }
+  }
+  ceilOn = show; paintStageButtons();
+}
+viewer.addEventListener('load', () => { try { setCeiling(false); } catch (e) { $('#btn-ceil').hidden = true; } });
+function paintStageButtons() {
+  $('#btn-ceil').textContent = ceilOn ? T('ceiling_on') : T('ceiling_off');
+  $('#btn-ceil').setAttribute('aria-pressed', String(ceilOn)); $('#btn-top').textContent = T('top');
+}
+$('#btn-ceil').onclick = () => { try { setCeiling(!ceilOn); } catch (e) {} };
+$('#btn-top').onclick = () => { viewer.cameraOrbit = '0deg 0.5deg auto'; };
+
+function paintBadges(days) {
+  const [a, b] = interval(days), now = Date.now();
+  for (const n of PC_IDS) hs[n].className = 'pc s-' + stateOf(n, a, b, now).s + (S.pc === n ? ' sel' : '');
+}
+
+/* ====================================================================
+   RENDER
+   ==================================================================== */
+function renderLangs() {
+  document.querySelectorAll('[data-langs]').forEach(box => {
+    box.innerHTML = ['ru', 'en', 'tk', 'tr'].map(l => `<button type="button" data-lang="${l}" class="${S.lang === l ? 'on' : ''}">${l.toUpperCase()}</button>`).join('');
+  });
+}
+function renderSignin() {
+  $('#si-sub').textContent = T('signin_sub'); $('#l-name').textContent = T('name'); $('#l-surname').textContent = T('surname');
+  $('#l-nick').textContent = T('nickname'); $('#l-phone').textContent = T('phone'); $('#si-go').textContent = T('cont');
+  $('#si-hours').textContent = T('hours'); $('#si-demo').textContent = T('demo'); $('#si-staff').textContent = T('staff');
+}
+function renderTabs() {
+  const tabs = [['book', T('tab_book')], ['my', T('tab_my')]]; if (S.staff) tabs.push(['staff', T('tab_staff')]);
+  $('#tabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-tab="${k}" class="${S.tab === k ? 'on' : ''}">${esc(l)}</button>`).join('');
+}
+function legend() {
+  return `<div class="legend">${[['free','free'],['pending','pending'],['booked','booked'],['walkin','walkin']]
+    .map(([c, k]) => `<span><i class="s-${c}"></i>${esc(T(k))}</span>`).join('')}</div>`;
+}
+function pcGrid() {
+  const days = clubDays(), [a, b] = interval(days), now = Date.now();
+  return `<div class="grid">${PC_IDS.map(n => `<button type="button" class="pc s-${stateOf(n, a, b, now).s}${S.pc === n ? ' sel' : ''}" data-pc="${n}">${n}</button>`).join('')}</div>`;
+}
+function timelineHTML(pc, di, days) {
+  const D = days[di], now = Date.now(); let segs = '', windows = [], cur = null;
+  for (let s = 0; s < SLOTS; s++) {
+    const st = D.start + s * STEP, en = st + STEP, state = stateOf(pc, st, en, now).s, past = en <= now;
+    segs += `<i class="s-${state}${past ? ' past' : ''}"></i>`;
+    if (state === 'free' && !past) { if (!cur) cur = { s, e: s + 1 }; else cur.e = s + 1; } else if (cur) { windows.push(cur); cur = null; }
+  }
+  if (cur) windows.push(cur);
+  const ticks = [0, 8, 16, 24, 32].map(s => `<span>${fmtTime(D.start + s * STEP)}</span>`).join('');
+  const wins = windows.length ? windows.map(w => `<button type="button" data-win="${w.s}">${fmtRange(D.start + w.s * STEP, D.start + w.e * STEP)}</button>`).join('') : `<span class="muted">${esc(T('none'))}</span>`;
+  return `<div class="timeline">${segs}</div><div class="ticks">${ticks}</div>
+    <div class="muted" style="margin-top:12px">${esc(T('free_times'))} · ${fmtDay(D.start)}</div><div class="windows">${wins}</div>`;
+}
+function renderBook() {
+  const days = clubDays(); const now = Date.now();
+  if (S.slot < 0 || days[S.day].start + S.slot * STEP < now && S.day === 0) { const f = firstSlot(S.day, days); S.slot = f < 0 ? 0 : f; }
+  S.dur = Math.min(S.dur, maxDurFor(S.day, S.slot, days));
+  const D = days[S.day], a = D.start + S.slot * STEP, b = a + S.dur * 60000;
+  const day0Over = firstSlot(0, days) < 0;
+  const dayChips = days.map((d, i) => `<button type="button" class="chip${i === S.day ? ' on' : ''}" data-day="${i}" ${i === 0 && day0Over ? 'disabled' : ''}><b>${WD[S.lang][new Date(d.start).getDay()]}</b><span>${fmtDM(d.start)}</span></button>`).join('');
+  let slotChips = '';
+  for (let s = 0; s < SLOTS; s++) {
+    const st = D.start + s * STEP, dis = st < now;
+    slotChips += `<button type="button" class="chip${s === S.slot ? ' on' : ''}${isNight(st) ? ' night' : ''}" data-slot="${s}" ${dis ? 'disabled' : ''}><b>${fmtTime(st)}${isNight(st) ? '<sup>+1</sup>' : ''}</b></button>`;
+  }
+  const maxD = maxDurFor(S.day, S.slot, days), opts = [];
+  for (let m = 30; m <= maxD; m += 30) opts.push(`<option value="${m}" ${m === S.dur ? 'selected' : ''}>${esc(fmtDur(m))}</option>`);
+  let selHTML = '';
+  if (S.pc) {
+    const st = stateOf(S.pc, a, b, now), free = st.s === 'free';
+    selHTML = `<div class="card" id="sel"><div class="item"><div><h3>${esc(T('pc'))} ${S.pc}</h3>
+      <div class="muted">${free ? esc(tv('free_for', { t: fmtDay(a) + ' ' + fmtRange(a, b) })) : esc(T('busy'))}</div></div>
+      <span class="pc s-${st.s}">${esc(T(st.s))}</span></div>
+      ${free ? `<button type="button" class="btn" data-request="1">${esc(T('request'))}</button>` : ''}
+      ${timelineHTML(S.pc, S.day, days)}</div>`;
+  }
+  $('#panel').innerHTML = `
+    <h2>${esc(T('day'))}</h2><div class="row">${dayChips}</div>
+    <h2>${esc(T('time'))}</h2><div class="row" id="slots">${slotChips}</div>
+    <h2>${esc(T('duration'))}</h2><select id="dur">${opts.join('')}</select>
+    <div class="summary">${esc(fmtDay(a))} · ${esc(fmtRange(a, b))}${isNight(b - 1) && !isNight(a) ? ' ' + esc(T('next_day')) : ''}</div>
+    ${legend()}${pcGrid()}${selHTML}
+    <p class="note">${esc(T('hours'))}<br>${esc(T('demo'))}<br><a href="#admin" id="go-staff">${esc(T('staff'))}</a></p>`;
+  const act = $('#slots .on'); if (act) act.parentElement.scrollLeft = act.offsetLeft - 90;
+}
+const STATUS_PILL = { pending:'st_pending', confirmed:'st_confirmed', rejected:'st_rejected', cancelled:'st_cancelled', expired:'st_expired', walkin:'st_walkin', done:'st_done' };
+function renderMy() {
+  const now = Date.now(), me = digits(S.user.phone);
+  const mine = DB.list().filter(b => b.user && digits(b.user.phone) === me).sort((x, y) => y.start - x.start);
+  const items = mine.map(b => {
+    const st = effStatus(b, now), cancellable = st === 'pending' || (st === 'confirmed' && b.start > now);
+    return `<div class="card"><div class="item"><div><h3>${esc(T('pc'))} ${b.pc}</h3><div class="muted">${esc(fmtDay(b.start))} · ${esc(fmtRange(b.start, b.end))}</div></div>
+      <span class="pill ${st}">${esc(T(STATUS_PILL[st]))}</span></div>
+      ${cancellable ? `<button type="button" class="btn ghost" data-cancel="${b.id}">${esc(T('cancel'))}</button>` : ''}</div>`;
+  }).join('');
+  $('#panel').innerHTML = `<div class="card"><div class="item"><div><h3>${esc(S.user.name)} ${esc(S.user.surname)}</h3>
+    <div class="muted">@${esc(S.user.nick)} · ${esc(S.user.phone)}</div></div><button type="button" class="btn ghost" data-logout="1" style="margin:0">${esc(T('logout'))}</button></div></div>
+    ${items || `<p class="muted" style="text-align:center;margin-top:30px">${esc(T('my_empty'))}</p>`}
+    <p class="note">${esc(T('demo'))}</p>`;
+}
+function renderStaff() {
+  const now = Date.now(), days = clubDays();
+  const pend = DB.list().filter(b => effStatus(b, now) === 'pending').sort((x, y) => x.createdAt - y.createdAt);
+  const reqs = pend.map(b => `<div class="card"><div class="item"><div><h3>${esc(T('pc'))} ${b.pc} · ${esc(fmtRange(b.start, b.end))}</h3>
+    <div class="muted">${esc(fmtDay(b.start))}</div>
+    <div style="margin-top:6px">${esc(b.user.name)} ${esc(b.user.surname)} · @${esc(b.user.nick)}</div></div></div>
+    <div class="btns"><a class="btn ghost" href="tel:${esc(digits(b.user.phone) ? '+' + digits(b.user.phone) : b.user.phone)}">${esc(T('call'))} ${esc(b.user.phone)}</a>
+    <button type="button" class="btn green" data-ok="${b.id}">${esc(T('confirm'))}</button>
+    <button type="button" class="btn red" data-no="${b.id}">${esc(T('reject'))}</button></div></div>`).join('');
+  let pcCard = '';
+  if (S.pc) {
+    const st = stateOf(S.pc, now, now + 1, now), close = days.find(d => d.close > now).close;
+    let body = '';
+    if (st.s === 'free') {
+      const fu = freeUntil(S.pc, now, close), maxMin = Math.min(MAX_DUR, Math.floor((fu - now) / 60000)), opts = [];
+      for (let m = 30; m <= maxMin; m += 30) opts.push(`<option value="${m}" ${m === S.walkDur ? 'selected' : ''}>${esc(fmtDur(m))}</option>`);
+      if (maxMin >= 10 && maxMin % 30) opts.push(`<option value="${maxMin}">${esc(fmtDur(maxMin))}</option>`);
+      body = `<div class="muted">${esc(fu < close ? tv('free_until', { t: fmtTime(fu) }) : T('free_now'))}</div>` +
+        (opts.length ? `<select id="walk-dur" style="margin-top:10px">${opts.join('')}</select><button type="button" class="btn" data-walk="1">${esc(T('start_walkin'))}</button>` : `<div class="muted" style="margin-top:8px">${esc(T('busy_soon'))}</div>`);
+    } else {
+      const bk = st.bk, who = bk.user ? `${esc(bk.user.name)} ${esc(bk.user.surname)} · @${esc(bk.user.nick)}` : esc(T('guest'));
+      body = `<div class="muted">${esc(fmtRange(bk.start, bk.end))} · ${who}</div>` +
+        (st.s !== 'pending' ? `<button type="button" class="btn red" data-end="${bk.id}">${esc(T('end_session'))}</button>` : '');
+    }
+    pcCard = `<div class="card" id="sel"><div class="item"><h3>${esc(T('pc'))} ${S.pc}</h3><span class="pc s-${st.s}">${esc(T(st.s))}</span></div>${body}</div>`;
+  }
+  const upcoming = DB.list().filter(b => effStatus(b, now) === 'confirmed' && b.end > now).sort((x, y) => x.start - y.start).map(b =>
+    `<div class="card"><div class="item"><div><b>${esc(T('pc'))} ${b.pc}</b> · ${esc(fmtDay(b.start))} · ${esc(fmtRange(b.start, b.end))}
+    <div class="muted">${b.user ? esc(b.user.name) + ' ' + esc(b.user.surname) + ' · ' + esc(b.user.phone) : ''}</div></div>
+    <button type="button" class="btn ghost" data-cancel="${b.id}" style="margin:0">${esc(T('cancel'))}</button></div></div>`).join('');
+  $('#panel').innerHTML = `
+    <h2>${esc(T('requests'))} (${pend.length})</h2>${reqs || `<p class="muted">${esc(T('none'))}</p>`}
+    <h2>${esc(T('walkin_title'))}</h2><p class="muted" style="margin:0 0 8px">${esc(T('staff_hint'))}</p>${legend()}${pcGrid()}${pcCard}
+    <h2>${esc(T('today_bookings'))}</h2>${upcoming || `<p class="muted">${esc(T('none'))}</p>`}
+    <div class="btns" style="margin-top:20px"><button type="button" class="btn ghost" data-reset="1">${esc(T('reset'))}</button>
+    <button type="button" class="btn ghost" data-staffout="1">${esc(T('staff_out'))}</button></div>`;
+}
+function renderStaffLogin() {
+  $('#panel').innerHTML = `<div class="card"><h3>${esc(T('staff'))}</h3><label>${esc(T('pin'))}</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="off"><div class="err" id="pin-err"></div>
+    <button type="button" class="btn" data-pin="1">${esc(T('enter'))}</button></div><p class="note">${esc(T('demo'))}</p>`;
+}
+function render() {
+  document.documentElement.lang = S.lang; renderLangs();
+  if (!S.user && S.tab !== 'staff' && S.tab !== 'stafflogin') { $('#app').hidden = true; $('#signin').hidden = false; renderSignin(); return; }
+  $('#signin').hidden = true; $('#app').hidden = false; paintStageButtons();
+  if (S.tab === 'stafflogin') { $('#tabs').innerHTML = ''; $('#stage').hidden = true; renderStaffLogin(); return; }
+  renderTabs(); $('#stage').hidden = S.tab === 'my';
+  const days = clubDays();
+  if (S.tab === 'book') renderBook(); else if (S.tab === 'my') renderMy(); else renderStaff();
+  if (S.tab !== 'my') paintBadges(days);
+}
+function selectPC(n) {
+  S.pc = n; render(); const el = $('#sel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function modal(html) { $('#modal-text').innerHTML = html; $('#modal').hidden = false; }
+$('#modal-ok').onclick = () => { $('#modal').hidden = true; };
+
+/* ====================================================================
+   EVENTS
+   ==================================================================== */
+document.addEventListener('click', e => {
+  const x = e.target.closest('button, a'); if (!x) return;
+  const d = x.dataset;
+  if (d.lang) { S.lang = d.lang; store.set('kg_lang', S.lang); render(); return; }
+  if (d.tab) { S.tab = d.tab; S.pc = null; render(); window.scrollTo(0, 0); return; }
+  if (x.id === 'go-staff' || x.id === 'si-staff') { e.preventDefault(); S.tab = S.staff ? 'staff' : 'stafflogin'; render(); return; }
+  if (d.day !== undefined) { S.day = +d.day; if (S.day === 0) { const f = firstSlot(0, clubDays()); S.slot = Math.max(S.slot, f < 0 ? 0 : f); } render(); return; }
+  if (d.slot !== undefined) { S.slot = +d.slot; render(); return; }
+  if (d.win !== undefined) { S.slot = +d.win; render(); return; }
+  if (d.pc) { selectPC(+d.pc); return; }
+  if (d.request) { requestBooking(); return; }
+  if (d.cancel) { DB.update(d.cancel, { status: 'cancelled' }); render(); return; }
+  if (d.logout) { store.del('kg_user'); S.user = null; S.tab = 'book'; render(); return; }
+  if (d.pin) { tryPin(); return; }
+  if (d.ok) { DB.update(d.ok, { status: 'confirmed' }); render(); return; }
+  if (d.no) { DB.update(d.no, { status: 'rejected' }); render(); return; }
+  if (d.walk) { startWalkin(); return; }
+  if (d.end) { DB.update(d.end, { end: Date.now() }); render(); return; }
+  if (d.reset) { seedDemo(); S.pc = null; render(); return; }
+  if (d.staffout) { S.staff = false; S.tab = 'book'; S.pc = null; render(); return; }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'dur') { S.dur = +e.target.value; render(); }
+  if (e.target.id === 'walk-dur') { S.walkDur = +e.target.value; }
+});
+$('#si-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim(), u = { name: v('#f-name'), surname: v('#f-surname'), nick: v('#f-nick'), phone: v('#f-phone') };
+  if (!u.name || !u.surname || !u.nick || !u.phone) { $('#si-err').textContent = T('fill_all'); return; }
+  if (digits(u.phone).length < 8) { $('#si-err').textContent = T('bad_phone'); return; }
+  $('#si-err').textContent = ''; S.user = u; store.set('kg_user', JSON.stringify(u)); S.tab = 'book'; render();
+});
+function requestBooking() {
+  const days = clubDays(), a = days[S.day].start + S.slot * STEP, b = a + S.dur * 60000, now = Date.now(), me = digits(S.user.phone);
+  const pendingMine = DB.list().filter(x => x.user && digits(x.user.phone) === me && effStatus(x, now) === 'pending').length;
+  if (pendingMine >= MAX_PENDING) { modal(`<p>${esc(T('too_many'))}</p>`); return; }
+  if (stateOf(S.pc, a, b, now).s !== 'free') { modal(`<p>${esc(T('taken'))}</p>`); render(); return; }
+  DB.add({ id: uid(), pc: S.pc, start: a, end: b, status: 'pending', createdAt: now, user: S.user });
+  modal(`<p><b>${esc(T('pc'))} ${S.pc} · ${esc(fmtDay(a))} ${esc(fmtRange(a, b))}</b></p><p>${esc(tv('req_sent', { phone: S.user.phone }))}</p>`);
+  S.tab = 'my'; S.pc = null; render();
+}
+function tryPin() {
+  if ($('#pin').value === STAFF_PIN) { S.staff = true; S.tab = 'staff'; render(); } else $('#pin-err').textContent = T('bad_pin');
+}
+function startWalkin() {
+  const now = Date.now(), m = +($('#walk-dur') ? $('#walk-dur').value : S.walkDur);
+  if (stateOf(S.pc, now, now + m * 60000, now).s !== 'free') { render(); return; }
+  DB.add({ id: uid(), pc: S.pc, start: now, end: now + m * 60000, status: 'walkin', createdAt: now, user: null }); render();
+}
+
+/* ====================================================================
+   START
+   ==================================================================== */
+if (!store.get('kg_seeded')) seedDemo();
+{ const f = firstSlot(0, clubDays()); if (f < 0) { S.day = 1; S.slot = 0; } else S.slot = f; }
+if (location.hash === '#admin') S.tab = 'stafflogin';
+render();
+setInterval(() => { if (!document.hidden && !$('#modal').offsetParent && document.activeElement?.tagName !== 'SELECT') { try { render(); } catch (e) {} } }, 60000);
+})();
+</script>
+</body>
+</html>
