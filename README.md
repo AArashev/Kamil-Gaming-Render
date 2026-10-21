@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" width="170" alt="Kamil Gaming logo">
+  <img src="logo.PNG" width="170" alt="Kamil Gaming logo">
 </p>
 
 # Kamil Gaming — 3D Interior
@@ -16,7 +16,7 @@ In the viewer you can drag to rotate, scroll or pinch to zoom, switch the ceilin
 
 | Main hall and reception | VIP room |
 | --- | --- |
-| ![Main hall and reception](photo-hall.jpg) | ![VIP room](photo-vip.jpg) |
+| ![Main hall and reception](hall.PNG) | ![VIP room](photo-vip.PNG) |
 
 ## Location
 
